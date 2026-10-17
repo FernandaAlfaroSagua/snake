@@ -1,0 +1,15 @@
+{
+  "name": "teach-worktree-snake",
+  "version": "1.0.0",
+  "description": "Minimal multiplayer snake.io demo for teaching git worktrees",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
