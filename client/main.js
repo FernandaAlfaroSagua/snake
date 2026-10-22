@@ -42,3 +42,19 @@ window.addEventListener('keydown', (e) => {
     socket.emit('direction', dir);
   }
 });
+
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!e.repeat) socket.emit('dash', true);
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    socket.emit('dash', false);
+  }
+});
