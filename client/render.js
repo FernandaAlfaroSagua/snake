@@ -38,6 +38,11 @@ const Render = (function () {
         ctx.strokeStyle = '#fff';
         ctx.strokeRect(head.x * cell + 1, head.y * cell + 1, cell - 2, cell - 2);
       }
+      // Dash indicator: bright outline around every segment.
+      if (s.dashing) {
+        ctx.strokeStyle = '#ffd400';
+        for (const p of s.body) ctx.strokeRect(p.x * cell + 1, p.y * cell + 1, cell - 2, cell - 2);
+      }
     }
   }
 

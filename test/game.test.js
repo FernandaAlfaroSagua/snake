@@ -34,3 +34,41 @@ test('hitting a wall kills and respawns the snake', () => {
   assert.ok(snake.body.every((p) => p.x >= 0 && p.x < 20));
   assert.strictEqual(snake.alive, true);
 });
+
+test('dashing snake moves two cells per tick', () => {
+  const { game, snake } = setup();
+  snake.body.push({ x: 2, y: 5 });
+  game.setDash('a', true);
+  game.step();
+  assert.deepStrictEqual(snake.body[0], { x: 7, y: 5 });
+});
+
+test('each dash tick drops one tail segment', () => {
+  const { game, snake } = setup();
+  snake.body.push({ x: 2, y: 5 }, { x: 1, y: 5 });
+  game.setDash('a', true);
+  game.step();
+  assert.strictEqual(snake.body.length, 4);
+  game.step();
+  assert.strictEqual(snake.body.length, 3);
+});
+
+test('dash has no effect at length 3', () => {
+  const { game, snake } = setup();
+  game.setDash('a', true);
+  game.step();
+  assert.deepStrictEqual(snake.body[0], { x: 6, y: 5 });
+  assert.strictEqual(snake.body.length, 3);
+});
+
+test('speed returns to normal after releasing dash', () => {
+  const { game, snake } = setup();
+  snake.body.push({ x: 2, y: 5 }, { x: 1, y: 5 });
+  game.setDash('a', true);
+  game.step();
+  game.setDash('a', false);
+  const before = snake.body[0].x;
+  game.step();
+  assert.strictEqual(snake.body[0].x, before + 1);
+  assert.strictEqual(snake.body.length, 4);
+});
