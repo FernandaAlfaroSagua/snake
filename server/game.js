@@ -80,6 +80,7 @@ function createGame(options = {}) {
       dir: 'right',
       nextDir: 'right',
       alive: true,
+      dashing: false,
       score: 0,
     };
     spawnSnake(snake);
@@ -99,6 +100,13 @@ function createGame(options = {}) {
     // Ignore 180-degree reversals.
     if (cur.x + nxt.x === 0 && cur.y + nxt.y === 0) return;
     snake.nextDir = dir;
+  }
+
+  // --- dash ---
+  function setDash(id, active) {
+    const snake = state.snakes.get(id);
+    if (!snake) return;
+    snake.dashing = Boolean(active);
   }
 
   // --- food ---
@@ -153,8 +161,13 @@ function createGame(options = {}) {
     const snakes = [...state.snakes.values()].filter((s) => s.alive);
 
     for (const s of snakes) {
-      moveSnake(s);
-      if (!eatFood(s)) s.body.pop();
+      // Dashing needs length > 3: one extra cell per tick, paid with one tail segment.
+      const dash = s.dashing && s.body.length > 3;
+      for (let i = 0; i < (dash ? 2 : 1); i++) {
+        moveSnake(s);
+        if (!eatFood(s)) s.body.pop();
+      }
+      if (dash) s.body.pop();
     }
 
     // Evaluate all collisions first, then apply deaths, so head-to-head kills both.
@@ -178,6 +191,7 @@ function createGame(options = {}) {
         color: s.color,
         body: s.body,
         alive: s.alive,
+        dashing: s.dashing,
         score: s.score,
       })),
     };
@@ -199,7 +213,7 @@ function createGame(options = {}) {
 
   spawnFood();
 
-  return { state, addPlayer, removePlayer, setDirection, step, snapshot, start, stop };
+  return { state, addPlayer, removePlayer, setDirection, setDash, step, snapshot, start, stop };
 }
 
 module.exports = { createGame, DIRS };

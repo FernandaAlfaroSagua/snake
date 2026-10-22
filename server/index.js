@@ -25,6 +25,10 @@ io.on('connection', (socket) => {
     game.setDirection(socket.id, dir);
   });
 
+  socket.on('dash', (active) => {
+    game.setDash(socket.id, active);
+  });
+
   socket.on('disconnect', () => {
     game.removePlayer(socket.id);
   });
