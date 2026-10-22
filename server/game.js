@@ -11,6 +11,8 @@ const DEFAULTS = {
   tickRate: 15,
   startLength: 3,
   foodCount: 5,
+  orbCount: 1,
+  shieldSeconds: 5,
 };
 
 const DIRS = {
@@ -33,6 +35,7 @@ function createGame(options = {}) {
     tick: 0,
     snakes: new Map(), // id -> snake
     food: [], // [{ x, y }]
+    orbs: [], // shield orbs [{ x, y }]
   };
   let colorIndex = 0;
   let timer = null;
@@ -46,6 +49,7 @@ function createGame(options = {}) {
     for (const s of state.snakes.values()) {
       if (s.body.some((p) => p.x === x && p.y === y)) return true;
     }
+    if (state.orbs.some((o) => o.x === x && o.y === y)) return true;
     return state.food.some((f) => f.x === x && f.y === y);
   }
 
@@ -69,6 +73,7 @@ function createGame(options = {}) {
     snake.nextDir = 'right';
     snake.alive = true;
     snake.score = 0;
+    snake.shield = 0; // remaining shield ticks
   }
 
   function addPlayer(id, name) {
@@ -82,6 +87,7 @@ function createGame(options = {}) {
       alive: true,
       dashing: false,
       score: 0,
+      shield: 0,
     };
     spawnSnake(snake);
     state.snakes.set(id, snake);
@@ -125,6 +131,22 @@ function createGame(options = {}) {
     return true;
   }
 
+  // --- orbs ---
+  function spawnOrbs() {
+    while (state.orbs.length < cfg.orbCount) {
+      state.orbs.push(randomFreeCell());
+    }
+  }
+
+  function pickOrb(snake) {
+    const head = snake.body[0];
+    const i = state.orbs.findIndex((o) => o.x === head.x && o.y === head.y);
+    if (i === -1) return false;
+    state.orbs.splice(i, 1);
+    snake.shield = cfg.shieldSeconds * cfg.tickRate;
+    return true;
+  }
+
   // --- movement ---
   function moveSnake(snake) {
     snake.dir = snake.nextDir;
@@ -136,6 +158,8 @@ function createGame(options = {}) {
 
   // --- collisions ---
   function collides(snake) {
+    // An active shield makes the snake immune to walls and snakes.
+    if (snake.shield > 0) return false;
     const head = snake.body[0];
     // Wall
     if (head.x < 0 || head.y < 0 || head.x >= state.width || head.y >= state.height) return true;
@@ -166,6 +190,7 @@ function createGame(options = {}) {
       for (let i = 0; i < (dash ? 2 : 1); i++) {
         moveSnake(s);
         if (!eatFood(s)) s.body.pop();
+        pickOrb(s);
       }
       if (dash) s.body.pop();
     }
@@ -175,7 +200,11 @@ function createGame(options = {}) {
     for (const s of dead) s.alive = false;
     for (const s of dead) respawn(s);
 
+    // Shield ticks down once per tick.
+    for (const s of state.snakes.values()) if (s.shield > 0) s.shield -= 1;
+
     spawnFood();
+    spawnOrbs();
   }
 
   // --- snapshot ---
@@ -185,6 +214,7 @@ function createGame(options = {}) {
       width: state.width,
       height: state.height,
       food: state.food.map((f) => ({ x: f.x, y: f.y })),
+      orbs: state.orbs.map((o) => ({ x: o.x, y: o.y })),
       snakes: [...state.snakes.values()].map((s) => ({
         id: s.id,
         name: s.name,
@@ -193,6 +223,7 @@ function createGame(options = {}) {
         alive: s.alive,
         dashing: s.dashing,
         score: s.score,
+        shielded: s.shield > 0,
       })),
     };
   }
@@ -200,6 +231,7 @@ function createGame(options = {}) {
   // --- loop ---
   function start(onSnapshot) {
     spawnFood();
+    spawnOrbs();
     timer = setInterval(() => {
       step();
       if (onSnapshot) onSnapshot(snapshot());
@@ -212,6 +244,7 @@ function createGame(options = {}) {
   }
 
   spawnFood();
+  spawnOrbs();
 
   return { state, addPlayer, removePlayer, setDirection, setDash, step, snapshot, start, stop };
 }

@@ -28,11 +28,30 @@ const Render = (function () {
     }
   }
 
+  // --- orbs ---
+  function drawOrbs(ctx, cell, orbs) {
+    ctx.fillStyle = '#00e5ff';
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 10;
+    for (const o of orbs) {
+      ctx.beginPath();
+      ctx.arc(o.x * cell + cell / 2, o.y * cell + cell / 2, cell * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+
   // --- snakes ---
   function drawSnakes(ctx, cell, snakes, myId) {
     for (const s of snakes) {
       ctx.fillStyle = s.color;
+      // Shielded snakes get a glow.
+      if (s.shielded) {
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 15;
+      }
       for (const p of s.body) ctx.fillRect(p.x * cell + 1, p.y * cell + 1, cell - 2, cell - 2);
+      ctx.shadowBlur = 0;
       if (s.id === myId) {
         const head = s.body[0];
         ctx.strokeStyle = '#fff';
@@ -73,6 +92,7 @@ const Render = (function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid(ctx, cell, snap.width, snap.height);
     drawFood(ctx, cell, snap.food);
+    drawOrbs(ctx, cell, snap.orbs);
     drawSnakes(ctx, cell, snap.snakes, myId);
     drawNames(ctx, cell, snap.snakes);
     drawHud(ctx, snap, myId);
