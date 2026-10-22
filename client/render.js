@@ -18,6 +18,25 @@ const Render = (function () {
     }
   }
 
+  // --- zone ---
+  function drawZone(ctx, cell, w, h, zone) {
+    if (!zone) return;
+    const x = zone.left * cell;
+    const y = zone.top * cell;
+    const zw = (zone.right - zone.left + 1) * cell;
+    const zh = (zone.bottom - zone.top + 1) * cell;
+    // Shade everything outside the safe zone.
+    ctx.fillStyle = 'rgba(200, 30, 30, 0.25)';
+    ctx.fillRect(0, 0, w * cell, y);
+    ctx.fillRect(0, y + zh, w * cell, h * cell - (y + zh));
+    ctx.fillRect(0, y, x, zh);
+    ctx.fillRect(x + zw, y, w * cell - (x + zw), zh);
+    ctx.strokeStyle = '#ff4d4d';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, zw, zh);
+    ctx.lineWidth = 1;
+  }
+
   // --- food ---
   function drawFood(ctx, cell, food) {
     ctx.fillStyle = '#ffd400';
@@ -85,17 +104,49 @@ const Render = (function () {
     ctx.fillText(me ? `Score: ${me.score}` : 'Press Play to join', 10, 20);
   }
 
+  // --- leaderboard ---
+  const LEADERBOARD_SIZE = 5;
+  const BADGE_STREAK = 3;
+  let lastSnap = null;
+  let lastId = null;
+
+  function updateLeaderboard(snap, myId) {
+    const list = document.getElementById('leaderboard-list');
+    // draw() runs every animation frame: rebuild only when a new snapshot arrives.
+    if (!list || (snap === lastSnap && myId === lastId)) return;
+    lastSnap = snap;
+    lastId = myId;
+    // Array.prototype.sort is stable, so ties keep snapshot order.
+    const top = snap.snakes.slice().sort((a, b) => b.score - a.score).slice(0, LEADERBOARD_SIZE);
+    list.replaceChildren();
+    for (const s of top) {
+      const li = document.createElement('li');
+      if (s.id === myId) li.className = 'me';
+      // textContent only: names are user input.
+      li.textContent = `${s.name} - ${s.score}`;
+      if (s.streak >= BADGE_STREAK) {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = `\u{1F525} ${s.streak}`;
+        li.appendChild(badge);
+      }
+      list.appendChild(li);
+    }
+  }
+
   // --- draw ---
   function draw(canvas, snap, myId) {
     const ctx = canvas.getContext('2d');
     const cell = Math.floor(Math.min(canvas.width / snap.width, canvas.height / snap.height));
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid(ctx, cell, snap.width, snap.height);
+    drawZone(ctx, cell, snap.width, snap.height, snap.zone);
     drawFood(ctx, cell, snap.food);
     drawOrbs(ctx, cell, snap.orbs);
     drawSnakes(ctx, cell, snap.snakes, myId);
     drawNames(ctx, cell, snap.snakes);
     drawHud(ctx, snap, myId);
+    updateLeaderboard(snap, myId);
   }
 
   return { draw };
