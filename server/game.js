@@ -13,6 +13,8 @@ const DEFAULTS = {
   foodCount: 5,
   orbCount: 1,
   shieldSeconds: 5,
+  zoneShrinkTicks: 150, // ticks between zone shrinks (10 s at 15 ticks/s)
+  zoneMinSize: 12, // minimum zone width/height in cells; must fit a spawned snake
 };
 
 const DIRS = {
@@ -36,6 +38,7 @@ function createGame(options = {}) {
     snakes: new Map(), // id -> snake
     food: [], // [{ x, y }]
     orbs: [], // shield orbs [{ x, y }]
+    zone: { left: 0, top: 0, right: cfg.width - 1, bottom: cfg.height - 1 }, // safe zone, inclusive cells
   };
   let colorIndex = 0;
   let timer = null;
@@ -64,9 +67,13 @@ function createGame(options = {}) {
 
   // --- players ---
   function spawnSnake(snake) {
+    // Spawn inside the current safe zone so a respawn never starts taking zone damage.
+    const zone = state.zone;
+    const zoneWidth = zone.right - zone.left + 1;
+    const zoneHeight = zone.bottom - zone.top + 1;
     const margin = cfg.startLength + 2;
-    const x = margin + randInt(Math.max(1, state.width - margin * 2));
-    const y = 2 + randInt(Math.max(1, state.height - 4));
+    const x = zone.left + margin + randInt(Math.max(1, zoneWidth - margin * 2));
+    const y = zone.top + 2 + randInt(Math.max(1, zoneHeight - 4));
     snake.body = [];
     for (let i = 0; i < cfg.startLength; i++) snake.body.push({ x: x - i, y });
     snake.dir = 'right';
@@ -174,6 +181,39 @@ function createGame(options = {}) {
     return false;
   }
 
+  // --- zone ---
+  function shrinkZone() {
+    const zone = state.zone;
+    if (zone.right - zone.left + 1 - 2 >= cfg.zoneMinSize) {
+      zone.left += 1;
+      zone.right -= 1;
+    }
+    if (zone.bottom - zone.top + 1 - 2 >= cfg.zoneMinSize) {
+      zone.top += 1;
+      zone.bottom -= 1;
+    }
+  }
+
+  function outsideZone(snake) {
+    const head = snake.body[0];
+    const zone = state.zone;
+    return head.x < zone.left || head.x > zone.right || head.y < zone.top || head.y > zone.bottom;
+  }
+
+  // Head outside the zone costs one tail segment per tick; at length 1 the snake dies.
+  // The shield does not protect from zone damage.
+  function applyZoneDamage(snakes) {
+    for (const s of snakes) {
+      if (!s.alive || !outsideZone(s)) continue;
+      if (s.body.length > 1) {
+        s.body.pop();
+      } else {
+        s.alive = false;
+        respawn(s);
+      }
+    }
+  }
+
   // --- respawn ---
   function respawn(snake) {
     spawnSnake(snake);
@@ -182,6 +222,7 @@ function createGame(options = {}) {
   // --- tick ---
   function step() {
     state.tick += 1;
+    if (state.tick % cfg.zoneShrinkTicks === 0) shrinkZone();
     const snakes = [...state.snakes.values()].filter((s) => s.alive);
 
     for (const s of snakes) {
@@ -200,6 +241,8 @@ function createGame(options = {}) {
     for (const s of dead) s.alive = false;
     for (const s of dead) respawn(s);
 
+    applyZoneDamage(snakes);
+
     // Shield ticks down once per tick.
     for (const s of state.snakes.values()) if (s.shield > 0) s.shield -= 1;
 
@@ -213,6 +256,7 @@ function createGame(options = {}) {
       tick: state.tick,
       width: state.width,
       height: state.height,
+      zone: Object.assign({}, state.zone),
       food: state.food.map((f) => ({ x: f.x, y: f.y })),
       orbs: state.orbs.map((o) => ({ x: o.x, y: o.y })),
       snakes: [...state.snakes.values()].map((s) => ({
