@@ -185,3 +185,79 @@ test('a newly added player spawns inside the shrunken zone', () => {
   const snake = game.addPlayer('b', 'Bob');
   assert.ok(snake.body.every((p) => p.x >= 10 && p.x <= 25 && p.y >= 5 && p.y <= 20));
 });
+
+// --- S09 kill streaks ---
+test('streak rises by 1 when another snake dies hitting its body', () => {
+  const { game, snake } = setup();
+  const other = game.addPlayer('b', 'Bob');
+  other.body = [{ x: 7, y: 4 }, { x: 7, y: 3 }, { x: 7, y: 2 }];
+  other.dir = other.nextDir = 'down';
+  snake.body = [{ x: 8, y: 5 }, { x: 7, y: 5 }, { x: 6, y: 5 }];
+  snake.dir = snake.nextDir = 'right';
+  game.step(); // Ann -> (9,5),(8,5),(7,5); Bob -> (7,5) hits Ann's body
+  assert.strictEqual(snake.streak, 1);
+  assert.strictEqual(snake.alive, true);
+  assert.strictEqual(other.streak, 0);
+});
+
+test('hitting a wall gives no streak to anyone', () => {
+  const { game, snake } = setup();
+  const other = game.addPlayer('b', 'Bob');
+  other.body = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+  snake.body = [{ x: 19, y: 5 }, { x: 18, y: 5 }, { x: 17, y: 5 }];
+  game.step();
+  assert.strictEqual(snake.streak, 0);
+  assert.strictEqual(other.streak, 0);
+});
+
+test('hitting its own body gives no streak to anyone', () => {
+  const { game, snake } = setup();
+  const other = game.addPlayer('b', 'Bob');
+  other.body = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+  other.streak = 2;
+  snake.body = [{ x: 5, y: 5 }, { x: 5, y: 6 }, { x: 6, y: 6 }, { x: 6, y: 5 }, { x: 7, y: 5 }];
+  snake.dir = snake.nextDir = 'up';
+  snake.streak = 2;
+  game.setDirection('a', 'right');
+  game.step(); // head moves to (6,5), part of its own body
+  assert.strictEqual(other.streak, 2);
+  assert.strictEqual(snake.streak, 0); // reset by respawn, not raised
+});
+
+test('head-to-head collision gives no streak to anyone', () => {
+  const { game, snake } = setup();
+  const other = game.addPlayer('b', 'Bob');
+  other.body = [{ x: 7, y: 5 }, { x: 8, y: 5 }, { x: 9, y: 5 }];
+  other.dir = other.nextDir = 'left';
+  game.step(); // both heads land on (6,5)
+  assert.strictEqual(snake.streak, 0);
+  assert.strictEqual(other.streak, 0);
+});
+
+test('streak resets to 0 when the snake dies and respawns', () => {
+  const { game, snake } = setup();
+  snake.streak = 4;
+  snake.body = [{ x: 19, y: 5 }, { x: 18, y: 5 }, { x: 17, y: 5 }];
+  game.step();
+  assert.strictEqual(snake.alive, true);
+  assert.strictEqual(snake.streak, 0);
+});
+
+test('shielded snake passing through a body gives no streak', () => {
+  const { game, snake } = setup();
+  const other = game.addPlayer('b', 'Bob');
+  other.body = [{ x: 6, y: 4 }, { x: 6, y: 5 }, { x: 6, y: 6 }];
+  other.dir = other.nextDir = 'up';
+  snake.shield = 10;
+  game.step();
+  assert.strictEqual(other.streak, 0);
+  assert.strictEqual(snake.streak, 0);
+});
+
+test('snapshot includes the streak of every snake', () => {
+  const { game, snake } = setup();
+  game.addPlayer('b', 'Bob');
+  snake.streak = 3;
+  const snap = game.snapshot();
+  assert.deepStrictEqual(snap.snakes.map((s) => s.streak), [3, 0]);
+});

@@ -104,6 +104,36 @@ const Render = (function () {
     ctx.fillText(me ? `Score: ${me.score}` : 'Press Play to join', 10, 20);
   }
 
+  // --- leaderboard ---
+  const LEADERBOARD_SIZE = 5;
+  const BADGE_STREAK = 3;
+  let lastSnap = null;
+  let lastId = null;
+
+  function updateLeaderboard(snap, myId) {
+    const list = document.getElementById('leaderboard-list');
+    // draw() runs every animation frame: rebuild only when a new snapshot arrives.
+    if (!list || (snap === lastSnap && myId === lastId)) return;
+    lastSnap = snap;
+    lastId = myId;
+    // Array.prototype.sort is stable, so ties keep snapshot order.
+    const top = snap.snakes.slice().sort((a, b) => b.score - a.score).slice(0, LEADERBOARD_SIZE);
+    list.replaceChildren();
+    for (const s of top) {
+      const li = document.createElement('li');
+      if (s.id === myId) li.className = 'me';
+      // textContent only: names are user input.
+      li.textContent = `${s.name} - ${s.score}`;
+      if (s.streak >= BADGE_STREAK) {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = `\u{1F525} ${s.streak}`;
+        li.appendChild(badge);
+      }
+      list.appendChild(li);
+    }
+  }
+
   // --- draw ---
   function draw(canvas, snap, myId) {
     const ctx = canvas.getContext('2d');
@@ -116,6 +146,7 @@ const Render = (function () {
     drawSnakes(ctx, cell, snap.snakes, myId);
     drawNames(ctx, cell, snap.snakes);
     drawHud(ctx, snap, myId);
+    updateLeaderboard(snap, myId);
   }
 
   return { draw };
