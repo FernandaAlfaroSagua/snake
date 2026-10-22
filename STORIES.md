@@ -1,91 +1,111 @@
-# User Stories
+# Historias de usuario
 
 ## S01 Dash
-As a player, I want to press space to accelerate so that I can escape danger or catch food.
-- Given I am alive with length above 3, When I hold space, Then my snake moves faster.
-- Given I am dashing, When each dash tick passes, Then my snake loses one tail segment.
-- Given my length is 3, When I press space, Then nothing happens.
-- Given I release space, When the next tick runs, Then my speed returns to normal.
+Como jugador, quiero presionar espacio para acelerar, para poder escapar del peligro o alcanzar comida.
 
-Touches: server/game.js, client/render.js
+**Criterios de aceptación**
+- Dado que estoy vivo con longitud mayor a 3, cuando mantengo presionado espacio, entonces mi serpiente se mueve más rápido.
+- Dado que estoy haciendo dash, cuando pasa cada tick de dash, entonces mi serpiente pierde un segmento de cola.
+- Dado que mi longitud es 3, cuando presiono espacio, entonces no pasa nada.
+- Dado que suelto espacio, cuando se ejecuta el siguiente tick, entonces mi velocidad vuelve a la normal.
 
-## S02 Shield orb
-As a player, I want to pick up a shield orb so that I am immune to collisions for 5 seconds.
-- Given a shield orb is on the map, When my head reaches it, Then I gain a shield and the orb disappears.
-- Given I have a shield, When I hit a wall or a snake, Then I do not die.
-- Given I have a shield, When 5 seconds pass, Then the shield expires.
-- Given I have a shield, When other players look at me, Then my snake shows a visible glow.
+Archivos que toca: server/game.js, client/render.js
 
-Touches: server/game.js, client/render.js
+## S02 Orbe de escudo
+Como jugador, quiero recoger un orbe de escudo, para ser inmune a las colisiones durante 5 segundos.
 
-## S03 Shrinking zone
-As a player, I want the safe area to shrink over time so that matches become a battle royale.
-- Given a round is running, When time passes, Then the safe zone border moves inward.
-- Given I am outside the safe zone, When each tick passes, Then I take damage by losing a segment.
-- Given I am outside the zone with length 1, When damage applies, Then I die and respawn.
-- Given the zone reached its minimum size, When time passes, Then it stops shrinking.
+**Criterios de aceptación**
+- Dado que hay un orbe de escudo en el mapa, cuando mi cabeza lo alcanza, entonces obtengo un escudo y el orbe desaparece.
+- Dado que tengo un escudo, cuando choco con una pared o con otra serpiente, entonces no muero.
+- Dado que tengo un escudo, cuando pasan 5 segundos, entonces el escudo expira.
+- Dado que tengo un escudo, cuando otros jugadores me miran, entonces mi serpiente muestra un brillo visible.
 
-Touches: server/game.js, client/render.js
+Archivos que toca: server/game.js, client/render.js
 
-## S04 Golden food
-As a player, I want rare golden food worth x5 so that risky pickups pay off.
-- Given food spawns, When the spawn roll is rare, Then it is golden.
-- Given I eat golden food, When my head reaches it, Then my score rises by 5.
-- Given I eat golden food, When it is consumed, Then my snake grows by 5 segments.
-- Given golden food exists, When it is drawn, Then it looks different from normal food.
+## S03 Zona que se encoge
+Como jugador, quiero que la zona segura se reduzca con el tiempo, para que las partidas se conviertan en un battle royale.
 
-Touches: server/game.js, client/render.js
+**Criterios de aceptación**
+- Dado que una ronda está en curso, cuando pasa el tiempo, entonces el borde de la zona segura se mueve hacia adentro.
+- Dado que estoy fuera de la zona segura, cuando pasa cada tick, entonces recibo daño y pierdo un segmento.
+- Dado que estoy fuera de la zona con longitud 1, cuando se aplica el daño, entonces muero y reaparezco.
+- Dado que la zona llegó a su tamaño mínimo, cuando pasa el tiempo, entonces deja de encogerse.
 
-## S05 Portals
-As a player, I want paired portals that teleport me so that I can take shortcuts.
-- Given a portal pair exists, When my head enters one portal, Then I appear at the other portal.
-- Given I just teleported, When I keep moving, Then I keep my direction and length.
-- Given portals exist, When they are drawn, Then each pair shares a distinct color.
-- Given a portal exit is blocked by a snake, When I enter, Then I die.
+Archivos que toca: server/game.js, client/render.js
 
-Touches: server/game.js, client/render.js
+## S04 Comida dorada
+Como jugador, quiero comida dorada poco frecuente que valga x5, para que los riesgos valgan la pena.
 
-## S06 Poison mines
-As a player, I want dead snakes to drop mines so that the map stays dangerous.
-- Given a snake dies, When it respawns, Then mines appear where its body was.
-- Given a mine exists, When another snake's head touches it, Then that snake loses 3 segments.
-- Given a mine was hit, When the hit resolves, Then the mine is removed.
-- Given mines exist, When they are drawn, Then they are clearly marked as hazards.
+**Criterios de aceptación**
+- Dado que aparece comida, cuando el sorteo es poco frecuente, entonces la comida es dorada.
+- Dado que como comida dorada, cuando mi cabeza la alcanza, entonces mi puntaje sube 5 puntos.
+- Dado que como comida dorada, cuando se consume, entonces mi serpiente crece 5 segmentos.
+- Dado que existe comida dorada, cuando se dibuja, entonces se ve distinta a la comida normal.
 
-Touches: server/game.js, client/render.js
+Archivos que toca: server/game.js, client/render.js
 
-## S07 Control storm
-As a player, I want a global storm event that inverts controls so that matches have chaotic moments.
-- Given the game is running, When a storm triggers, Then all players are notified on screen.
-- Given a storm is active, When I press left, Then my snake turns right (and likewise for up and down).
-- Given a storm is active, When 5 seconds pass, Then controls return to normal.
-- Given no storm is active, When I press a direction, Then it behaves normally.
+## S05 Portales
+Como jugador, quiero portales en pareja que me teletransporten, para tomar atajos.
 
-Touches: server/game.js, client/render.js
+**Criterios de aceptación**
+- Dado que existe una pareja de portales, cuando mi cabeza entra en uno, entonces aparezco en el otro portal.
+- Dado que acabo de teletransportarme, cuando sigo avanzando, entonces conservo mi dirección y mi longitud.
+- Dado que existen portales, cuando se dibujan, entonces cada pareja comparte un color distinto.
+- Dado que la salida de un portal está bloqueada por una serpiente, cuando entro, entonces muero.
 
-## S08 Magnet orb
-As a player, I want a magnet orb that pulls nearby food so that I can collect it faster.
-- Given a magnet orb is on the map, When my head reaches it, Then I gain a magnet effect.
-- Given I have a magnet, When food is within 5 cells of my head, Then it moves one cell closer each tick.
-- Given I have a magnet, When 8 seconds pass, Then the effect ends.
-- Given I have a magnet, When I am drawn, Then a ring around my head shows the pull radius.
+Archivos que toca: server/game.js, client/render.js
 
-Touches: server/game.js, client/render.js
+## S06 Minas de veneno
+Como jugador, quiero que las serpientes muertas dejen minas, para que el mapa siga siendo peligroso.
 
-## S09 Live leaderboard with kill streaks
-As a player, I want a live leaderboard with kill streaks so that I can see who dominates.
-- Given players are connected, When scores change, Then the leaderboard shows the top 5 by score.
-- Given I kill another snake, When it dies by hitting my body, Then my kill streak increases by 1.
-- Given I die, When I respawn, Then my kill streak resets to 0.
-- Given a player has a streak of 3 or more, When the leaderboard is drawn, Then a streak badge appears next to the name.
+**Criterios de aceptación**
+- Dado que una serpiente muere, cuando reaparece, entonces aparecen minas donde estaba su cuerpo.
+- Dado que existe una mina, cuando la cabeza de otra serpiente la toca, entonces esa serpiente pierde 3 segmentos.
+- Dado que una mina fue activada, cuando se resuelve el golpe, entonces la mina se elimina.
+- Dado que existen minas, cuando se dibujan, entonces están claramente marcadas como un peligro.
 
-Touches: server/game.js, client/render.js, client/index.html
+Archivos que toca: server/game.js, client/render.js
 
-## S10 Chat bubbles
-As a player, I want chat bubbles above snake heads so that I can taunt friends.
-- Given I am connected, When I type a message and press Enter, Then it is sent to the server.
-- Given the server receives a message, When it broadcasts it, Then all players see a bubble above that snake's head.
-- Given a bubble is shown, When 4 seconds pass, Then it disappears.
-- Given a message is longer than 60 characters, When it is sent, Then it is truncated.
+## S07 Tormenta de controles
+Como jugador, quiero un evento global de tormenta que invierta los controles, para que las partidas tengan momentos caóticos.
 
-Touches: server/index.js, client/main.js, client/render.js
+**Criterios de aceptación**
+- Dado que el juego está en curso, cuando se activa una tormenta, entonces todos los jugadores reciben un aviso en pantalla.
+- Dado que hay una tormenta activa, cuando presiono izquierda, entonces mi serpiente gira a la derecha (y lo mismo con arriba y abajo).
+- Dado que hay una tormenta activa, cuando pasan 5 segundos, entonces los controles vuelven a la normalidad.
+- Dado que no hay una tormenta activa, cuando presiono una dirección, entonces se comporta de forma normal.
+
+Archivos que toca: server/game.js, client/render.js
+
+## S08 Orbe imán
+Como jugador, quiero un orbe imán que atraiga la comida cercana, para recogerla más rápido.
+
+**Criterios de aceptación**
+- Dado que hay un orbe imán en el mapa, cuando mi cabeza lo alcanza, entonces obtengo el efecto de imán.
+- Dado que tengo el imán, cuando hay comida a 5 celdas o menos de mi cabeza, entonces se acerca una celda por tick.
+- Dado que tengo el imán, cuando pasan 8 segundos, entonces el efecto termina.
+- Dado que tengo el imán, cuando se me dibuja, entonces un anillo alrededor de mi cabeza muestra el radio de atracción.
+
+Archivos que toca: server/game.js, client/render.js
+
+## S09 Tabla de posiciones en vivo con rachas
+Como jugador, quiero una tabla de posiciones en vivo con rachas de eliminaciones, para ver quién domina.
+
+**Criterios de aceptación**
+- Dado que hay jugadores conectados, cuando cambian los puntajes, entonces la tabla muestra los 5 mejores por puntaje.
+- Dado que elimino a otra serpiente, cuando muere al chocar con mi cuerpo, entonces mi racha de eliminaciones aumenta en 1.
+- Dado que muero, cuando reaparezco, entonces mi racha vuelve a 0.
+- Dado que un jugador tiene una racha de 3 o más, cuando se dibuja la tabla, entonces aparece una insignia de racha junto a su nombre.
+
+Archivos que toca: server/game.js, client/render.js, client/index.html
+
+## S10 Burbujas de chat
+Como jugador, quiero burbujas de chat sobre las cabezas de las serpientes, para burlarme de mis amigos.
+
+**Criterios de aceptación**
+- Dado que estoy conectado, cuando escribo un mensaje y presiono Enter, entonces se envía al servidor.
+- Dado que el servidor recibe un mensaje, cuando lo retransmite, entonces todos los jugadores ven una burbuja sobre la cabeza de esa serpiente.
+- Dado que se muestra una burbuja, cuando pasan 4 segundos, entonces desaparece.
+- Dado que un mensaje tiene más de 60 caracteres, cuando se envía, entonces se trunca.
+
+Archivos que toca: server/index.js, client/main.js, client/render.js
