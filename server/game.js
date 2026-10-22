@@ -74,6 +74,7 @@ function createGame(options = {}) {
     snake.alive = true;
     snake.score = 0;
     snake.shield = 0; // remaining shield ticks
+    snake.streak = 0; // kills since last spawn
   }
 
   function addPlayer(id, name) {
@@ -88,6 +89,7 @@ function createGame(options = {}) {
       dashing: false,
       score: 0,
       shield: 0,
+      streak: 0,
     };
     spawnSnake(snake);
     state.snakes.set(id, snake);
@@ -157,21 +159,25 @@ function createGame(options = {}) {
   }
 
   // --- collisions ---
-  function collides(snake) {
+  // Returns null if the snake survives, otherwise { killer }. The killer is the
+  // other snake whose body (not head) was hit; null for walls, self and head-to-head.
+  function findCollision(snake) {
     // An active shield makes the snake immune to walls and snakes.
-    if (snake.shield > 0) return false;
+    if (snake.shield > 0) return null;
     const head = snake.body[0];
     // Wall
-    if (head.x < 0 || head.y < 0 || head.x >= state.width || head.y >= state.height) return true;
+    if (head.x < 0 || head.y < 0 || head.x >= state.width || head.y >= state.height) return { killer: null };
     for (const other of state.snakes.values()) {
       if (!other.alive) continue;
       // Skip own head (index 0); check own body and every other body part.
       const start = other === snake ? 1 : 0;
       for (let i = start; i < other.body.length; i++) {
-        if (other.body[i].x === head.x && other.body[i].y === head.y) return true;
+        if (other.body[i].x === head.x && other.body[i].y === head.y) {
+          return { killer: other !== snake && i > 0 ? other : null };
+        }
       }
     }
-    return false;
+    return null;
   }
 
   // --- respawn ---
@@ -196,8 +202,11 @@ function createGame(options = {}) {
     }
 
     // Evaluate all collisions first, then apply deaths, so head-to-head kills both.
-    const dead = snakes.filter(collides);
+    const hits = snakes.map((s) => ({ snake: s, hit: findCollision(s) })).filter((h) => h.hit);
+    const dead = hits.map((h) => h.snake);
     for (const s of dead) s.alive = false;
+    // Credit kills before respawn, so a killer that also died ends at 0.
+    for (const h of hits) if (h.hit.killer) h.hit.killer.streak += 1;
     for (const s of dead) respawn(s);
 
     // Shield ticks down once per tick.
@@ -224,6 +233,7 @@ function createGame(options = {}) {
         dashing: s.dashing,
         score: s.score,
         shielded: s.shield > 0,
+        streak: s.streak,
       })),
     };
   }
